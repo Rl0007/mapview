@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<!-- <h1>hello</h1> -->
+<html lang="en">
+  <head>
+    <title>Markers Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=0.5" />
+    <link rel="stylesheet" type="text/css" href="{% static 'map.css' %}" />
+    <link rel="stylesheet" type="text/css" href="https:///unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https:///unpkg.com/leaflet/dist/leaflet.js"></script>
+  </head>
+  <body>
+    <h1 id="state" name="name">{{name}}</h1>
+    <div id="map">
+    <script >
+
+      const name = document.getElementById('state').innerText
+      console.log(name);
+      const copy = "© <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors";
+
+        const url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+        const osm = L.tileLayer(url, { attribution: copy });
+        const map = L.map("map", { layers: [osm], minZoom: 1 });
+        map.
+          locate()
+          .on("locationfound", (e) => map.setView(e.latlng, 1))
+          .on("locationerror", () => map.setView([0, 0], 1));
+        async function load_markers() {
+          const markers_url = `/api/world/${name}?in_bbox=${map.getBounds().toBBoxString()}`
+          const response = await fetch(markers_url)
+          const geojson = await response.json()
+          return geojson
+        }
+
+        async function render_markers() {
+          const markers = await load_markers();
+          L.geoJSON(markers)
+            .bindPopup((layer) => layer.feature.properties.name)
+            .addTo(map);
+        }
+
+        map.on("moveend", render_markers);
+    </script>
+    </div>
+    <!-- <h2></h2> -->
+  </body>
+</html>
