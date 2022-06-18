@@ -8,7 +8,7 @@ from world.viewset import WorldViewSet
 
 router = routers.DefaultRouter()
 # router.register("<int:name>", WorldViewSet)
-router.register("Minnesota", WorldViewSet, basename='base')
+router.register("Utah", WorldViewSet, basename='base')
 urlpatterns = [
     path('world/<str:stname>',
          WorldViewSet.as_view({'get': 'list'})),

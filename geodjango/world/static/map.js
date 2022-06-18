@@ -1,4 +1,5 @@
 const copy = "© <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors";
+
 const url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 const osm = L.tileLayer(url, { attribution: copy });
 const map = L.map("map", { layers: [osm], minZoom: 5 });
@@ -12,8 +13,7 @@ async function load_markers() {
     const geojson = await response.json()
     return geojson
 }
-const name = document.getElementById('state')
-console.log(name)
+
 async function render_markers() {
     const markers = await load_markers();
     L.geoJSON(markers)

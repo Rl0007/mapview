@@ -6,41 +6,61 @@
     <title>Markers Map</title>
     <meta name="viewport" content="width=device-width, initial-scale=0.5" />
     <link rel="stylesheet" type="text/css" href="{% static 'map.css' %}" />
-    <link rel="stylesheet" type="text/css" href="https:///unpkg.com/leaflet/dist/leaflet.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https:///unpkg.com/leaflet/dist/leaflet.css"
+    />
     <script src="https:///unpkg.com/leaflet/dist/leaflet.js"></script>
   </head>
   <body>
     <h1 id="state" name="name">{{name}}</h1>
-    <div id="map" >
-    <script >
+    <div id="map">
+      <script>
+          const name = document.getElementById("state").innerText;
+          console.log(name);
+          const copy =
+            "© <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors";
 
-      const name = document.getElementById('state').innerText
-      console.log(name);
-      const copy = "© <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors";
+          const url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+          const osm = L.tileLayer(url, { attribution: copy });
+          const map = L.map("map", { layers: [osm], minZoom: 1, editable: true });
+          map.setView([46.8797, 110.3626],1)
+          {% comment %} var test2 = fetch(`/api/world/Utah`).then(response => response.json).then(data=>console.log(data)) {% endcomment %}
+          async function load_markers() {
+            const markers_url = `/api/world/${name}?in_bbox=${map
+              .getBounds()
+              .toBBoxString()}`;
+            const response = await fetch(markers_url);
+            const geojson = await response.json();
+            return geojson;
+          }
+        //  let test1=load_markers().then((reponse)=> response.json()).then((data)=>console.log(data))
+        {% comment %} var poy {% endcomment %}
+        var flag = true
+        var tst = true
+          async function render_markers() {
+            const markers = await load_markers();
+            let poy = L.geoJSON(markers)
+              .bindPopup((layer) => layer.feature.properties.name)
+              .addTo(map)
+              if(flag){map.fitBounds(poy.getBounds())
+              flag = false}
 
-        const url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-        const osm = L.tileLayer(url, { attribution: copy });
-        const map = L.map("map", { layers: [osm], minZoom: 1 , editable: true });
-        map.
-          locate()
-          .on("locationfound", (e) => map.setView(e.latlng, 1))
-          .on("locationerror", () => map.setView([0, 0], 1));
-        async function load_markers() {
-          const markers_url = `/api/world/${name}?in_bbox=${map.getBounds().toBBoxString()}`
-          const response = await fetch(markers_url)
-          const geojson = await response.json()
-          return geojson
-        }
 
-        async function render_markers() {
-          const markers = await load_markers();
-          L.geoJSON(markers)
-            .bindPopup((layer) => layer.feature.properties.name)
-            .addTo(map);
-        }
+              //map.fitBounds(poy.getBounds())
+           //console.log(poy);
+            // {% comment %} map.fitBounds(poy.getBounds()); {% endcomment %}
+          }
+          {% comment %} map.on('click',render_markers) {% endcomment %}
 
-        map.on("moveend", render_markers);
-    </script>
+           map.on("mouseover", render_markers)
+           //console.log(poy)
+
+
+          {% comment %} maprender() {% endcomment %}
+          {% comment %} map.fitBounds(poy.getBounds()) {% endcomment %}
+      </script>
     </div>
     <!-- <h2></h2> -->
   </body>
