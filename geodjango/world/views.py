@@ -26,3 +26,9 @@ def show(request):
 
     showall = Admin1Us.objects.all()
     return render(request, "index.html", {'data': showall})
+
+
+# class EditMushroomSpot(UpdateView):
+#     model = Admin1Us
+#     form_class = MushroomSpotForm
+#     template_name = 'form.html'

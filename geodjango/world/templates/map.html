@@ -11,7 +11,7 @@
   </head>
   <body>
     <h1 id="state" name="name">{{name}}</h1>
-    <div id="map">
+    <div id="map" >
     <script >
 
       const name = document.getElementById('state').innerText
@@ -20,7 +20,7 @@
 
         const url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
         const osm = L.tileLayer(url, { attribution: copy });
-        const map = L.map("map", { layers: [osm], minZoom: 1 });
+        const map = L.map("map", { layers: [osm], minZoom: 1 , editable: true });
         map.
           locate()
           .on("locationfound", (e) => map.setView(e.latlng, 1))
