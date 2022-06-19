@@ -32,6 +32,8 @@ Deleting an entry from database
 
 To run locally start PostGIS server at local host
 
+Install GDAL on your system 
+
 cd into geodjango folder
 
 Install requiremnts.txt using pip
