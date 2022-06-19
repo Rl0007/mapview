@@ -16,7 +16,7 @@
     <title>Border</title>
   </head>
   <body>
-    <h1 class="text-center">states</h1>
+    <h1 class="text-center">states :-  <a href='/add'><button type="button" class="btn btn-primary">add</button></a> </h1>
 
     <!-- Optional JavaScript; choose one of the two! -->
 
@@ -26,7 +26,28 @@
       integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
       crossorigin="anonymous"
     ></script>
+<!-- Button trigger modal -->
 
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete!!!
+        <p>{{state.id}}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
     <div class="container">
       <table class="table">
         <thead>
@@ -34,6 +55,7 @@
             <th scope="col">#</th>
             <th scope="col">Name</th>
             <th scope="col">Code</th>
+            <th scope="col">Action</th>
             {% comment %}
             <th scope="col">Handle</th>
             {% endcomment %}
@@ -45,6 +67,7 @@
             <th scope="row">{{forloop.counter}}</th>
             <td><a href="/map/{{state.name}}"> {{state.name}}</a></td>
             <td>{{state.state_code}}</td>
+            <td><a href ='/delete/{{state.id}}'><button type="button" class="btn btn-danger" >Delete</button></a></td></tr>
             {% comment %}
             <td>@mdo</td>
             {% endcomment %}

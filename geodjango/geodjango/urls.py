@@ -21,5 +21,10 @@ urlpatterns = [
     path('api/', include("world.api")),
     path("map/", include("world.urls")),
     path("", include("world.urls")),
+    path("edit", include("world.urls")),
+    path("delete/", include("world.urls")),
+    path("create", include("world.urls")),
+    path("add/", include("world.urls"))
+
     # path("show", include("world.urls")),
 ]

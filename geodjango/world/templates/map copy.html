@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<!-- <h1>hello</h1> -->
+<html lang="en">
+  <head>
+    <title>Markers Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=0.5" />
+    <link rel="stylesheet" type="text/css" href="{% static 'map.css' %}" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https:///unpkg.com/leaflet/dist/leaflet.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw-src.css"
+    />
+    <script src="https:///unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  </head>
+  <body>
+    <h1 id="state" name="name">{{name}}</h1>
+    <script></script>
+    <div id="map">
+      <script>
+                    const name = document.getElementById("state").innerText;
+                    console.log(name);
+                    const copy =
+                    "© <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors";
+
+                    const url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+                    const osm = L.tileLayer(url, { attribution: copy });
+                    const map = L.map("map", { layers: [osm], minZoom: 1 ,editable : true,drawControl:true});
+                    {% comment %} var map = L.map('map',{editable : true}) {% endcomment %}
+                    map.setView([46.8797, 110.3626],1)
+
+
+                    async function load_markers() {
+                    const markers_url = `/api/world/${name}?in_bbox=${map
+                      .getBounds()
+                      .toBBoxString()}`;
+                    const response = await fetch(markers_url);
+                    const geojson = await response.json();
+                    return geojson;
+                    }
+                    //  let test1=load_markers().then((reponse)=> response.json()).then((data)=>console.log(data))
+                    {% comment %} var poy {% endcomment %}
+                    var flag = true
+                    var tst = true
+                    var group = new L.featureGroup().addTo(map);
+                    var drawControl = new L.Control.Draw({
+                    edit: {
+                    featureGroup: drawnItems
+                    }
+                    });
+                    var drawnItems = new L.featureGroup();
+                    map.addLayer(drawnItems)
+                    var drawControl = new L.Control.Draw({
+                      draw: {},
+                        polygon: {
+                    allowIntersection: false, // Restricts shapes to simple polygons
+                    drawError: {
+                    color: '#e1e100', // Color the shape will turn when intersects
+                    message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
+                    },
+                    shapeOptions: {
+                    color: '#bada55'
+                    }
+                    },
+                      edit: {
+                        featureGroup: group,
+                        poly: {
+                          allowIntersection: false
+                        }
+                      }
+                    });
+                    map.addControl(drawControl);
+        {% comment %}
+                    map.on("draw:edited", function(e) {
+                      let layers = e.layers;
+                      layers.eachLayer(function(layer) {
+                        console.log(layer);
+                      });
+                    }); {% endcomment %}
+                    map.on('draw:created', function (e) {
+                          var type = e.layerType,
+                          layer = e.layer;
+                          console.log(e)
+                          drawnItems.addLayer(layer);
+                          var shape = layer.toGeoJSON()
+                          var shape_for_db = JSON.stringify(shape);
+                          editpoly(shape_for_db)
+
+                      });
+                                  {% comment %} L.drawLocal.draw.toolbar.buttons.polygon = 'Draw a sexy polygon!'; {% endcomment %}
+                    {% comment %} drawnItems.addLayer(e.target);z {% endcomment %}
+                    function editpoly(shape_for_db){
+                        $.ajax(
+                          {  url :'/edit',
+                            type : 'POST',
+                            data : shape_for_db,
+                            dataType: 'json'}
+                          )
+
+                    }
+                    async function render_markers() {
+                    const markers = await load_markers();
+                    var selectedFeature = null;
+                    let poy = L.geoJSON(markers, {
+                    onEachFeature: function (feature, layer) {
+                        group.addLayer(layer);
+                        layer.on('click', function(e){
+                            if(selectedFeature){
+                                selectedFeature.editing.disable();
+                                var polygeo = layer.toGeoJSON()
+                                console.log('hi')
+                             //   console.log(polygeo)
+                                // and Here I'll add the code to store my edited polygon in the DB or whatever I want to do with it
+                            }
+                            selectedFeature = e.target;
+                            selectedFeature.editing.enable();
+                        });
+                    }
+                }).addTo(group)
+
+                      if(flag){map.fitBounds(poy.getBounds())
+                        //poy.enableEdit();
+                      flag = false}
+
+
+
+                      //map.fitBounds(poy.getBounds())
+                    // {% comment %} map.fitBounds(poy.getBounds()); {% endcomment %}
+                    }
+                    {% comment %} map.on('click',render_markers) {% endcomment %}
+
+                    map.on("mouseover", render_markers)
+
+
+                    {% comment %} maprender() {% endcomment %}
+                    {% comment %} map.fitBounds(poy.getBounds()) {% endcomment %}
+      </script>
+    </div>
+    <!-- <h2></h2> -->
+  </body>
+</html>

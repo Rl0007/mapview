@@ -11,57 +11,107 @@
       type="text/css"
       href="https:///unpkg.com/leaflet/dist/leaflet.css"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw-src.css"
+    />
     <script src="https:///unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+      #map{
+        height : 50 vh;
+      }
+    </style>
   </head>
   <body>
     <h1 id="state" name="name">{{name}}</h1>
-    <div id="map">
-      <script>
-          const name = document.getElementById("state").innerText;
-          console.log(name);
-          const copy =
-            "© <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors";
+    <script></script>
+    <div id="map"></div>
+    <script>
+      const name = document.getElementById("state").innerText;
+      console.log(name);
+      const copy =
+        "© <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors";
 
-          const url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-          const osm = L.tileLayer(url, { attribution: copy });
-          const map = L.map("map", { layers: [osm], minZoom: 1, editable: true });
-          map.setView([46.8797, 110.3626],1)
-          {% comment %} var test2 = fetch(`/api/world/Utah`).then(response => response.json).then(data=>console.log(data)) {% endcomment %}
-          async function load_markers() {
-            const markers_url = `/api/world/${name}?in_bbox=${map
-              .getBounds()
-              .toBBoxString()}`;
-            const response = await fetch(markers_url);
-            const geojson = await response.json();
-            return geojson;
-          }
-        //  let test1=load_markers().then((reponse)=> response.json()).then((data)=>console.log(data))
-        {% comment %} var poy {% endcomment %}
-        var flag = true
-        var tst = true
-          async function render_markers() {
-            const markers = await load_markers();
-            let poy = L.geoJSON(markers)
-              .bindPopup((layer) => layer.feature.properties.name)
-              .addTo(map)
-              if(flag){map.fitBounds(poy.getBounds())
-              flag = false}
+      const url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+      const osm = L.tileLayer(url, { attribution: copy });
+      const map = L.map("map", { layers: [osm], minZoom: 1, editable: false });
+      map.setView([46.8797, 110.3626], 1);
 
+      async function load_markers() {
+        const markers_url = `/api/world/${name}?in_bbox=${map
+          .getBounds()
+          .toBBoxString()}`;
+        const response = await fetch(markers_url);
+        const geojson = await response.json();
+        return geojson;
+      }
+      var group = new L.featureGroup().addTo(map);
+      var poy;
+      var drawnItems = new L.FeatureGroup();
+      map.addLayer(drawnItems);
+      var drawControl = new L.Control.Draw({
+        edit: {
+          featureGroup: drawnItems,
+        },
+      });
+      //aded new group follow tutorial
+      var flag = true;
+      async function render_markers() {
+        const markers = await load_markers();
+        var selectedFeature = null;
+        poy = L.geoJSON(markers, {
+          onEachFeature: function (feature, layer) {
+            group.addLayer(layer);
+            layer.on("click", function (e) {
+              if (selectedFeature) {
+                e.target.editing.disable();
+                selectedFeature = null;
+                drawnItems.addLayer(e.target);
+                //console.log(e.target.toGeoJSON());
+                var jsontosend = e.target.toGeoJSON();
+                var jtosend = JSON.stringify(jsontosend);
 
-              //map.fitBounds(poy.getBounds())
-           //console.log(poy);
-            // {% comment %} map.fitBounds(poy.getBounds()); {% endcomment %}
-          }
-          {% comment %} map.on('click',render_markers) {% endcomment %}
+                postjson(jtosend);
+                // and Here I'll add the code to store my edited polygon in the DB or whatever I want to do with it
+              } else {
+                selectedFeature = e.target;
+                e.target.editing.enable();
+              }
+            });
+          },
+        }).addTo(group);
 
-           map.on("mouseover", render_markers)
-           //console.log(poy)
+        if (flag) {
+          map.fitBounds(poy.getBounds());
+          flag = false;
+        }
+      }
+      function postjson(data) {
+        console.log(data);
+        $.ajax({
+          // points to the url where your data will be posted
+          url: "/edit",
+          // post for security reason
+          type: "POST",
+          // data that you will like to return
+          data: { val: data },
+          // what to do when the call is success
+          success: function () {
+            window.location.href = "/show";
+          },
+          // what to do when the call is complete ( you can right your clean from code here)
+          complete: function () {
+            fetch("/admin/");
+          },
+          // what to do when there is an error
+          error: function (xhr, textStatus, thrownError) {},
+        });
+      }
 
-
-          {% comment %} maprender() {% endcomment %}
-          {% comment %} map.fitBounds(poy.getBounds()) {% endcomment %}
-      </script>
-    </div>
+      map.on("mouseover", render_markers);
+    </script>
     <!-- <h2></h2> -->
   </body>
 </html>
